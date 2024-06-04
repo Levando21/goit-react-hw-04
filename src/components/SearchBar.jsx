@@ -1,20 +1,22 @@
 /** @format */
 
-const SearchBar = ({ onSubmit, value, onChange }) => {
+import { Field, Form, Formik } from "formik";
+
+const SearchBar = ({ submit }) => {
+	const handleSubmit = (values, actions) => {
+		submit(values.query);
+		actions.resetForm();
+	};
+
 	return (
-		<header>
-			<form onSubmit={onSubmit}>
-				<input
-					type="text"
-					autoComplete="off"
-					autoFocus
-					placeholder="Search images and photos"
-					value={value}
-					onChange={onChange}
-				/>
+		<Formik
+			initialValues={{ query: "" }}
+			onSubmit={handleSubmit}>
+			<Form>
+				<Field name="query" />
 				<button type="submit">Search</button>
-			</form>
-		</header>
+			</Form>
+		</Formik>
 	);
 };
 

@@ -1,17 +1,18 @@
 /** @format */
 import axios from "axios";
 
-const API_KEY = "fluBw_2FLnShYVPGvaZQIlXP-iK4rxdXZ8RRIxslK9Y";
+const API_KEY = import.meta.env.VITE_UNSPLASH_API_KEY;
 
-axios.defaults.baseURL = "https://api.unsplash.com";
+axios.defaults.baseURL = "https://api.unsplash.com/";
 
-export const getLink = async (query, page = 1) => {
+export const getLink = async (searchQuery, page) => {
 	const { data } = await axios.get("/search/photos", {
 		params: {
 			client_id: API_KEY,
-			query: query,
-			page: page,
+			query: searchQuery,
+			page,
+			per_page: 12,
 		},
 	});
-	return data.result;
+	return data.results;
 };

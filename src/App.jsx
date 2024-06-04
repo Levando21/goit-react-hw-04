@@ -9,42 +9,70 @@ import Loader from "./components/Loader";
 import "./App.css";
 import ImageGallery from "./components/ImageGallery";
 import ErrorMessage from "./components/ErrorMessage";
+import LoadMoreButton from "./components/LoadMoreBtn";
+import ImageModal from "./components/ImageModal";
 
 function App() {
-	const [term, setTerm] = useState("");
+	const modalInitialParams = {
+		isOpen: false,
+		url: "",
+		description: "",
+	};
 	const [images, setImages] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(false);
-
-	const handleSubmit = async (term) => {
-		event.preventDefault();
-
-		setLoading(true);
-		try {
-			const data = await getLink(term);
-			setImages(data);
-			setError(false);
-		} catch (e) {
-			setError(true);
-		} finally {
-			setLoading(false);
-		}
-	};
+	const [page, setPage] = useState(1);
+	const [query, setQuery] = useState("");
+	const [modalParams, setModalParams] = useState(modalInitialParams);
 
 	useEffect(() => {
-		handleSubmit();
-		console.log("Fetched images:", images);
-	}, []);
+		const fetchImages = async (query) => {
+			try {
+				setLoading(true);
+
+				const data = await getLink(query, page);
+				setImages((prev) => [...prev, ...data]);
+				setShowLoadMoreBtn(total_pages && total_pages !== page);
+				setError(false);
+			} catch (e) {
+				setError(true);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		query && fetchImages();
+	}, [page, query]);
+
+	const handleSearchSubmit = (searchQuery) => {
+		setQuery(searchQuery);
+	};
+
+	const buttonLoad = async () => {
+		setPage(page + 1);
+	};
+
+	const handleImageClick = (url, description) => {
+		setModalParams({ isOpen: true, url, description });
+	};
+
+	const handleModalClose = () => {
+		setModalParams(modalInitialParams);
+	};
 
 	return (
 		<>
-			<SearchBar
-				onSubmit={handleSubmit}
-				value={term}
-				onChange={(e) => setTerm(e.target.value)}
-			/>
+			<SearchBar submit={handleSearchSubmit} />
 			{error && <ErrorMessage />}
-			{loading ? <Loader /> : <ImageGallery images={images} />}
+			{images.length > 0 && <ImageGallery images={images} />}
+			{images.length > 0 && <LoadMoreButton onClick={buttonLoad} />}
+			{loading && <Loader />}
+			<ImageModal
+				url={modalParams.url}
+				description={modalParams.description}
+				isOpen={modalParams.isOpen}
+				onClose={handleModalClose}
+			/>
 		</>
 	);
 }
