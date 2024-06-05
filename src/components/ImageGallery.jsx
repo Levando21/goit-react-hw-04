@@ -2,19 +2,17 @@
 
 import ImageCard from "./ImageCard";
 
-const ImageGallery = ({ images }) => {
+export default function ImageGallery({ cards, onImageClick }) {
 	return (
 		<ul>
-			{images.map((image, index) => (
-				<li key={index}>
+			{cards.map((card) => (
+				<li key={card.id}>
 					<ImageCard
-						imgUrl={image.urls.regular}
-						imgSrc={image.alt_description}
+						card={card}
+						onImageClick={() => onImageClick(card.urls.regular, card.alt_description)}
 					/>
 				</li>
 			))}
 		</ul>
 	);
-};
-
-export default ImageGallery;
+}

@@ -1,11 +1,12 @@
 /** @format */
 
-const LoadMoreButton = ({ onClick }) => {
+export default function LoadMoreBtn({ onClick, disabled }) {
 	return (
-		<div>
-			<button onClick={onClick}>Load more</button>
-		</div>
+		<button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}>
+			Load more...
+		</button>
 	);
-};
-
-export default LoadMoreButton;
+}

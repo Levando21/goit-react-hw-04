@@ -1,54 +1,65 @@
 /** @format */
-import { useState } from "react";
-import { useEffect } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import { getLink } from "./api/api";
-import SearchBar from "./components/SearchBar";
-import Loader from "./components/Loader";
-import "./App.css";
-import ImageGallery from "./components/ImageGallery";
-import ErrorMessage from "./components/ErrorMessage";
-import LoadMoreButton from "./components/LoadMoreBtn";
-import ImageModal from "./components/ImageModal";
 
-function App() {
-	const modalInitialParams = {
-		isOpen: false,
-		url: "",
-		description: "",
-	};
+import { useState, useRef, useEffect } from "react";
+import "./App.css";
+
+import getImages from "./api/api";
+import ImageGallery from "./components/ImageGallery";
+import ImageModal from "./components/ImageModal";
+import Loader from "./components/Loader";
+import LoadMoreBtn from "./components/LoadMoreBtn";
+import SearchBar from "./components/SearchBar";
+import ErrorMessage from "./components/ErrorMessage";
+import ImageCard from "./components/ImageCard";
+
+const modalInitialParams = {
+	isOpen: false,
+	url: "",
+	description: "",
+};
+
+export default function App() {
+	const [searchImage, setSearchImage] = useState("");
 	const [images, setImages] = useState([]);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(false);
+	const [loading, setIsLoading] = useState(false);
+	const [isError, setIsError] = useState(false);
 	const [page, setPage] = useState(1);
-	const [query, setQuery] = useState("");
+	const [showLoadMoreBtn, setShowLoadMoreBtn] = useState(false);
 	const [modalParams, setModalParams] = useState(modalInitialParams);
 
+	const appRef = useRef();
+
 	useEffect(() => {
-		const fetchImages = async (query) => {
+		if (searchImage === "") {
+			return;
+		}
+
+		async function getData() {
 			try {
-				setLoading(true);
-
-				const data = await getLink(query, page);
-				setImages((prev) => [...prev, ...data]);
+				setIsLoading(true);
+				setIsError(false);
+				const { results, total_pages } = await getImages(searchImage, page);
+				setImages((prevImages) => {
+					return [...prevImages, ...results];
+				});
 				setShowLoadMoreBtn(total_pages && total_pages !== page);
-				setError(false);
-			} catch (e) {
-				setError(true);
+			} catch (error) {
+				setIsError(true);
 			} finally {
-				setLoading(false);
+				setIsLoading(false);
 			}
-		};
+		}
 
-		query && fetchImages();
-	}, [page, query]);
+		getData();
+	}, [searchImage, page]);
 
-	const handleSearchSubmit = (searchQuery) => {
-		setQuery(searchQuery);
+	const handleSearch = (newImage) => {
+		setSearchImage(newImage);
+		setPage(1);
+		setImages([]);
 	};
 
-	const buttonLoad = async () => {
+	const handleLoadMoreClick = () => {
 		setPage(page + 1);
 	};
 
@@ -60,21 +71,38 @@ function App() {
 		setModalParams(modalInitialParams);
 	};
 
+	useEffect(() => {
+		if (page === 1) return;
+
+		appRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+	}, [images, page]);
+
 	return (
-		<>
-			<SearchBar submit={handleSearchSubmit} />
-			{error && <ErrorMessage />}
-			{images.length > 0 && <ImageGallery images={images} />}
-			{images.length > 0 && <LoadMoreButton onClick={buttonLoad} />}
+		<div ref={appRef}>
+			<SearchBar submit={handleSearch} />
+
+			{isError && <ErrorMessage />}
+
+			{images.length > 0 && (
+				<ImageGallery
+					cards={images}
+					onImageClick={handleImageClick}
+				/>
+			)}
+
+			{images.length > 0 && loading && showLoadMoreBtn && (
+				<LoadMoreBtn onClick={handleLoadMoreClick} />
+			)}
+
 			{loading && <Loader />}
-			<ImageModal
-				url={modalParams.url}
-				description={modalParams.description}
-				isOpen={modalParams.isOpen}
-				onClose={handleModalClose}
-			/>
-		</>
+			{modalParams && (
+				<ImageModal
+					url={modalParams.url}
+					description={modalParams.description}
+					isOpen={modalParams.isOpen}
+					onClose={handleModalClose}
+				/>
+			)}
+		</div>
 	);
 }
-
-export default App;

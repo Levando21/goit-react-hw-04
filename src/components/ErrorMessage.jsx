@@ -1,11 +1,9 @@
 /** @format */
 
-const ErrorMessage = () => {
+export default function ErrorMessage() {
 	return (
 		<div>
-			<p>Oops....Error</p>
+			<p>Error HTTP-query. Reload the page, please!</p>
 		</div>
 	);
-};
-
-export default ErrorMessage;
+}

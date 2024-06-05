@@ -1,16 +1,21 @@
 /** @format */
 
-const ImageCard = ({ imgUrl, imgSrc }) => {
+export default function ImageCard({ card, onImageClick }) {
 	return (
 		<div>
 			<img
-				src={imgUrl}
-				alt={imgSrc}
-				width="400"
-				height="400"
+				src={card.urls.small}
+				alt={card.alt_description}
+				onClick={onImageClick}
 			/>
+			<ul>
+				<li>
+					<p>Photo by {card.user.name}</p>
+				</li>
+				<li>
+					<p>Likes: {}card.likes</p>
+				</li>
+			</ul>
 		</div>
 	);
-};
-
-export default ImageCard;
+}
